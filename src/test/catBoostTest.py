@@ -1,9 +1,14 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),  '..', '..', 'src')))
+
 import pytest
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import fetch_california_housing
-from model.CatBoostTrainer import CatBoostTrainer  # CatBoostTrainer 클래스 임포트
+from model import CatBoostTrainer  # CatBoostTrainer 클래스 임포트
 
 # 데이터셋 로드 (회귀 문제)
 data = fetch_california_housing()

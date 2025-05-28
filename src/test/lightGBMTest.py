@@ -1,10 +1,15 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),  '..', '..', 'src')))
+
 import numpy as np
 import lightgbm as lgb
 import pytest
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import fetch_california_housing
 from sklearn.metrics import mean_squared_error
-from model.LightGBMTrainer import LightGBMTrainer  # LightGBMTrainer 클래스 임포트
+from model import LightGBMTrainer  # LightGBMTrainer 클래스 임포트
 
 # 데이터셋 로드
 data = fetch_california_housing()

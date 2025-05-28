@@ -1,9 +1,14 @@
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),  '..', '..', 'src')))
+
 import pytest
 import numpy as np
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import fetch_california_housing
-from model.XGBoostTrainer import XGBoostTrainer  # XGBoostTrainer 클래스 임포트
+from model import XGBoostTrainer  # XGBoostTrainer 클래스 임포트
 
 # 데이터셋 로드 (회귀 예제)
 data = fetch_california_housing()
