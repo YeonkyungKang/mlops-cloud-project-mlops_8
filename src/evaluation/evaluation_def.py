@@ -12,14 +12,19 @@ fm.fontManager.ttflist.insert(0, fe)
 plt.rcParams.update({'font.size': 10, 'font.family': 'NanumBarunGothic'})
 plt.rc('font', family='NanumBarunGothic')
 ''' 
-
-
-
-## 1. model, X_train 기반 feature importance 측정하는 함수
-
+## 0. 필요한 라이브러리 모두 load
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+from sklearn.inspection import permutation_importance
+from sklearn.metrics import mean_absolute_error, r2_score
+from sklearn.metrics import mean_squared_error
+
+## 1. model, X_train 기반 feature importance 측정하는 함수
+
+
 
 def plot_feature_importances(model, X_train, top_n=None, figsize=(10,8), title="Feature Importances"):
     """
@@ -49,10 +54,7 @@ def plot_feature_importances(model, X_train, top_n=None, figsize=(10,8), title="
 
 
 ## 2. model, X_val,y_val 기반 feature importance 측정하는 함수 
-import pandas as pd
-import numpy as np
-import plotly.graph_objects as go
-from sklearn.inspection import permutation_importance
+
 
 def plot_permutation_importance(model, X_val, y_val, n=20, order='high'):
     """
@@ -147,10 +149,7 @@ def plot_permutation_importance(model, X_val, y_val, n=20, order='high'):
 
 #주요 통계 지표 확인 및 예측 값과 실제 값의 분포가 잘 되었는지 그래프, 지표값으로 확인하는 함수
 
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+
 
 def calculate_statistics(pred_original, y_val_original):
     """
@@ -216,9 +215,7 @@ def analyze_and_plot(pred_original, y_val_original):
 ## 4. 주요 성능 평가 지표 구하는 함수
 # 성능 지표: MAE, MAPE, RMSE, 상관계수, R^2
 
-import numpy as np
-from sklearn.metrics import mean_absolute_error, r2_score
-from sklearn.metrics import mean_squared_error
+
 
 def regression_metrics(y_val_original, pred_original):
     """
