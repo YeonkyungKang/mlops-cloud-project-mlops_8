@@ -44,7 +44,6 @@ def get_date_ranges(start_date_str):
         return [(last_date, last_date)]
     
     current_date = datetime.now()
-    current_date_str = current_date.strftime('%Y%m%d')
 
     start_date = datetime.strptime(start_date_str, '%Y%m%d').replace(day=1)
     date_ranges = []
@@ -180,11 +179,10 @@ def show_help():
     print("  python data_collector.py update    # 어제 데이터 다운로드")
 
 
-
 if __name__ == "__main__":
 
     fire.Fire({
-        "init": all_data_download('20230401'),
-        "update": all_data_download(last_date),
+        "init": lambda: all_data_download('20230401'),
+        "update": lambda: all_data_download(last_date),
         "__default__": show_help,
     })
