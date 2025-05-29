@@ -1,11 +1,12 @@
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__),  '..', '..', 'src')))
 
 import pandas as pd
 import numpy as np
-from src.utils.utils import project_path
-from src.utils.preprocessor import WeatherPreprocessor
+from sklearn.model_selection import train_test_split
+from util.util_function import SEED, ROOT_PATH
+from util.preprocessor import WeatherPreprocessor
 
 def load_data(path):
     df = pd.read_csv(path)
@@ -26,7 +27,7 @@ def preprocess_weather_data(df):
         df[col].replace(-99.9, 0, inplace=True)
 
     # 평균 기온, 평균 습도, 최저 습도가 -99.9 값인 경우 결측치로 대체하고 결측치를 앞행이나 뒷행의 값으로 대체
-    columns = ['Average_temperature', 'Average_humidity', 'Min_humidity']    
+    columns = ['Average_temperature', 'Average_humidity', 'Min_humidity']
     for col in columns:  
         df[col].replace(-99.9, np.nan, inplace=True)
     
@@ -42,7 +43,7 @@ def preprocess_weather_data(df):
     # df = processor.encode_categorical(df, cat_columns)
 
     # 수치형 변수 스케일링
-    num_columns = ['Average_temperature', 'Sum_rainfall', 'Max_rainfall_1H', 'Max_rainfall_1H_occur_time', 'Average_humidity', 'Min_humidity']  
+    num_columns = ['Average_temperature', 'Sum_rainfall', 'Max_rainfall_1H', 'Max_rainfall_1H_occur_time', 'Average_humidity', 'Min_humidity']
     df = processor.scale_numeric(df, num_columns)
 
     # 로그 변환
@@ -53,14 +54,14 @@ def preprocess_weather_data(df):
     # 칼럼 삭제
     columns_to_drop = ['Average_wind_speed'] # 삭제할 컬럼 있으면 추가할 것
     columns_to_drop = [col for col in columns_to_drop if col in df.columns]
-    df = df.drop(columns=columns_to_drop)    
+    df = df.drop(columns=columns_to_drop)
 
     # 평균 기온을 타겟으로 설정
     df = df.rename(columns={'Average_temperature':'target'})
 
     return df
 
-def validate_data(df):
+def validate_data(df: pd.DataFrame):
     """데이터 유효성 검증"""
     assert not df.empty, "데이터프레임이 비어있습니다"
     
@@ -79,10 +80,25 @@ def validate_data(df):
     
     return True
 
+
+def split_dataset(df):
+    train_df, test_df = train_test_split(df, test_size=0.2, random_state=SEED)
+    return train_df, test_df
+
+
+def get_datasets(scaler=None, label_encoder=None) -> "tuple[pd.DataFrame, pd.DataFrame]":
+    df = load_data(f"{ROOT_PATH}/weather_data_20250528.csv")
+    validate_data(df)
+    df = preprocess_weather_data(df)
+    train_df, test_df = split_dataset(df)
+    
+    return train_df, test_df
+
+
 if __name__ == "__main__":
     try:
         # 데이터 로드
-        raw_data_path = os.path.join(project_path(), "dataset", "weather_data.csv")
+        raw_data_path = f"{ROOT_PATH}/weather_data_20250528.csv"
         df = load_data(raw_data_path)
         
         # 데이터 검증
@@ -92,7 +108,7 @@ if __name__ == "__main__":
         processed_df = preprocess_weather_data(df)
         
         # 결과 저장
-        output_path = os.path.join(project_path(), "dataset", "preprocessed_weather.csv")
+        output_path = f"{ROOT_PATH}/preprocessed_weather_20250529.csv"
         processed_df.to_csv(output_path, index=False, encoding='utf-8')
         
         print(f"전처리 완료: {len(processed_df)} 개의 데이터가 {output_path}에 저장되었습니다.")

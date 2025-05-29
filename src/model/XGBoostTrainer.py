@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd # X_train.columns 사용 시 필요
 
 from .BaseTrainer import BaseTrainer
-from util.util_function import SEED
+from src.util.util_function import SEED
 
 
 class XGBoostTrainer(BaseTrainer):
