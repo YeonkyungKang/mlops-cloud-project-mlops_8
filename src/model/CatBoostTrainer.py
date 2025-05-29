@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd # To check for DataFrame and get column names
 
 from .BaseTrainer import BaseTrainer
-from util.util_function import SEED
+from src.util.util_function import SEED
 
 
 class CatBoostTrainer(BaseTrainer):
