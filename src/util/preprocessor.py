@@ -7,7 +7,8 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler, MinMaxScaler
 class WeatherPreprocessor:
     def __init__(self, scaler_type="standard"):
         self.scaler_type = scaler_type
-        self.scaler = None
+        self.feature_scaler = None  # Feature scaling
+        self.target_scaler = None   # Target scaling
         self.label_encoders = {}
 
     def fill_missing(self, df: pd.DataFrame, method: str = "ffill"):
@@ -27,13 +28,29 @@ class WeatherPreprocessor:
             self.label_encoders[col] = le
         return df
 
-    def scale_numeric(self, df: pd.DataFrame, columns: list):
-        """수치형 변수 스케일링"""
+    def scale_numeric_features(self, df: pd.DataFrame, columns: list):
+        """수치형 피처 변수 스케일링 (타겟 제외)"""
+        if not columns:
+            return df
         if self.scaler_type == "standard":
-            self.scaler = StandardScaler()
+            self.feature_scaler = StandardScaler()
         else:
-            self.scaler = MinMaxScaler()
-        df[columns] = self.scaler.fit_transform(df[columns])
+            self.feature_scaler = MinMaxScaler()
+        df[columns] = self.feature_scaler.fit_transform(df[columns])
+        return df
+
+    def scale_target(self, df: pd.DataFrame, target_column: str):
+        """타겟 변수 스케일링"""
+        if target_column not in df.columns:
+            print(f"Warning: Target column '{target_column}' not found for scaling.")
+            return df
+        
+        if self.scaler_type == "standard":
+            self.target_scaler = StandardScaler()
+        else:
+            self.target_scaler = MinMaxScaler()
+        
+        df[target_column] = self.target_scaler.fit_transform(df[[target_column]])
         return df
     
     def log_transform(self, df, columns):
@@ -119,3 +136,19 @@ class WeatherPreprocessor:
         df['day'] = df[date_column].astype(str).str[6:8].astype(int)
 
         return df
+
+    @classmethod
+    def inverse_transform_target(cls, target_scaler: StandardScaler | MinMaxScaler, target_scaled_values: np.ndarray) -> np.ndarray:
+        """스케일링된 타겟 변수 역변환"""
+        if target_scaler is None:
+            raise ValueError("Target scaler object must be provided.")
+        # Scaler expects 2D input for transform and inverse_transform
+        if target_scaled_values.ndim == 1:
+            # input 차원이 1차원 인 경우에
+            # [
+            #   [20],
+            #   [10],   
+            #]
+            # 위와 같은 형태로 2차원 형태로 넣어줘야 하기 때문에 나중에 밖에서 flatten() 매서드로 반드시 1차원으로 만들어줄 것!!
+            target_scaled_values = target_scaled_values.reshape(-1, 1)
+        return target_scaler.inverse_transform(target_scaled_values)
