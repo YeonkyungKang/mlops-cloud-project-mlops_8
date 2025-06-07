@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from util.util_function import SEED, ROOT_PATH
+from joblib import dump
 from util.preprocessor import WeatherPreprocessor
 
 def load_data(path):
@@ -37,14 +38,16 @@ def preprocess_weather_data(df):
     # 수치형 컬럼만 선택, 이상치 제거
     numeric_columns = df.select_dtypes(include=['int64', 'float64']).columns
     df = processor.remove_outliers_iqr(df, numeric_columns)
-
+    
     # 범주형 변수 인코딩
     # cat_columns = ['범주형 변수'] 
     # df = processor.encode_categorical(df, cat_columns)
 
-    # 수치형 변수 스케일링
-    num_columns = ['Average_temperature', 'Sum_rainfall', 'Max_rainfall_1H', 'Max_rainfall_1H_occur_time', 'Average_humidity', 'Min_humidity']
-    df = processor.scale_numeric(df, num_columns)
+    # 수치형 '피처' 변수 스케일링 (타겟 변수는 이름 변경 후 별도 스케일링)
+    num_feature_columns = ['Sum_rainfall', 'Max_rainfall_1H', 'Max_rainfall_1H_occur_time', 'Average_humidity', 'Min_humidity']
+    num_feature_columns_present = [col for col in num_feature_columns if col in df.columns]
+    if num_feature_columns_present:
+        df = processor.scale_numeric_features(df, num_feature_columns_present)
 
     # 로그 변환
     # log_columns = ['target'] # 로그 변환 변수 추가할 것
@@ -57,8 +60,16 @@ def preprocess_weather_data(df):
     df = df.drop(columns=columns_to_drop)
 
     # 평균 기온을 타겟으로 설정
-    df = df.rename(columns={'Average_temperature':'target'})
-
+    if 'Average_temperature' in df.columns:
+        df = df.rename(columns={'Average_temperature':'target'})
+        # 타겟 변수 스케일링
+        df = processor.scale_target(df, 'target')
+        # 타겟 스케일러 저장
+        scaler_path = os.path.join(ROOT_PATH, 'target_scaler.joblib')
+        dump(processor.target_scaler, scaler_path)
+        print(f"Target scaler saved to {scaler_path}")
+    else:
+        print("Warning: 'Average_temperature' column not found, 'target' was not created/scaled.")
     return df
 
 def validate_data(df: pd.DataFrame):
@@ -80,6 +91,24 @@ def validate_data(df: pd.DataFrame):
     
     return True
 
+
+def split_test_train(df:pd.DataFrame):
+    assert not df.empty, "데이터프레임이 비어있습니다"
+
+    # 필수 컬럼 존재 확인
+    required_columns = [
+        'YMD', 'target',
+    ]
+    missing_cols = set(required_columns) - set(df.columns)
+    assert not missing_cols, f"필수 컬럼이 누락됨: {missing_cols}"
+    
+    correct_answer_data = df[df['YMD'] == df['YMD'].max()]
+    df = df[df['YMD'] != df['YMD'].max()]
+    
+    inferance_df = df[df['YMD'] == df['YMD'].max()]
+    train_df = df[df['YMD'] != df['YMD'].max()]
+    return train_df, inferance_df
+    
 
 def split_dataset(df):
     train_df, test_df = train_test_split(df, test_size=0.2, random_state=SEED)
@@ -108,7 +137,7 @@ if __name__ == "__main__":
         processed_df = preprocess_weather_data(df)
         
         # 결과 저장
-        output_path = f"{ROOT_PATH}/preprocessed_weather_20250529.csv"
+        output_path = f"{ROOT_PATH}/preprocessed_weather_20250605.csv"
         processed_df.to_csv(output_path, index=False, encoding='utf-8')
         
         print(f"전처리 완료: {len(processed_df)} 개의 데이터가 {output_path}에 저장되었습니다.")
