@@ -3,13 +3,17 @@ import os
 from joblib import load
 
 from src.model.LightGBMTrainer import LightGBMTrainer
-from src.dataset.preprocess import get_datasets
+from src.dataset.preprocess import get_datasets, split_test_train
 from src.dataset.CrossValidation import CrossValidator
 from src.util.preprocessor import WeatherPreprocessor
 from src.util.util_function import ROOT_PATH
 
 def run_train():
-    train_df, test_df = get_datasets()
+    # train_df, test_df = get_datasets()
+    
+    df = pd.read_csv(f"{ROOT_PATH}/preprocessed_weather_20250605.csv")
+    train_df, test_df = split_test_train(df)
+    
     y = train_df["target"]
     X = train_df.drop(['target'], axis=1)
     y_test = test_df["target"]
