@@ -95,5 +95,45 @@ def main():
         print(f"파이프라인 실행 중 오류 발생: {e}")
         sys.exit(1)
 
+def download_original_data(bucket_name_env, s3_handler: S3Handler) -> pd.DataFrame:
+    # 1. S3에서 원본 데이터 다운로드
+    print(f"S3에서 데이터 다운로드 중: s3://{bucket_name_env}")
+    df_raw = s3_handler.download_csv("original/weather_data_20250528.csv")
+    print(f"원본 데이터 다운로드 완료. Shape: {df_raw.shape}")
+    # 데이터 검증
+    validate_data(df_raw)
+    return df_raw
+
+
+def preprocess_data(df_raw: pd.DataFrame) -> pd.DataFrame:
+    # 2. 데이터 전처리
+    print("데이터 전처리 시작...")
+    df_processed = preprocess_weather_data(df_raw)
+    print(f"데이터 전처리 완료. Shape: {df_processed.shape}")
+    return df_processed
+        
+def split_data(df_processed: pd.DataFrame) -> 'tuple[pd.DataFrame, pd.DataFrame]':
+    # 3. 데이터 분할
+    train_df, test_df = split_test_train(df_processed)
+    return train_df, test_df
+
+def upload_preprocessed_data(bucket_name_env, train_df: pd.DataFrame, test_df: pd.DataFrame, s3_handler: S3Handler) -> None:
+    # 4. 전처리된 학습 및 테스트 데이터를 S3에 업로드
+    print(f"학습 데이터 업로드 중: s3://{bucket_name_env}")
+    s3_handler.upload_csv(train_df, "preprocessed/preprocessed_weather_train.csv")
+    
+    print(f"테스트 데이터 업로드 중: s3://{bucket_name_env}")
+    s3_handler.upload_csv(test_df, "preprocessed/preprocessed_weather_test.csv")
+    
+    print(f"스케일러 업로드 중: s3://{bucket_name_env}")
+    scaler_local_path = os.path.join(ROOT_PATH, 'target_scaler.joblib')
+    try:
+        target_scaler_object = load(scaler_local_path) # 로컬에 저장된 스케일러 객체 로드
+        s3_handler.upload_joblib(target_scaler_object, "preprocessed/target_scaler.joblib") # 객체를 S3에 업로드
+    except FileNotFoundError:
+        print(f"오류: 스케일러 파일 '{scaler_local_path}'을(를) 찾을 수 없습니다. S3에 업로드할 수 없습니다.")
+    except Exception as e:
+        print(f"오류: 스케일러 로드 또는 업로드 중 오류 발생 - {e}")
+
 if __name__ == "__main__":
     main()
