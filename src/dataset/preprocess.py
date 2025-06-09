@@ -64,6 +64,9 @@ def preprocess_weather_data(df):
         df = df.rename(columns={'Average_temperature':'target'})
         # 타겟 변수 스케일링
         df = processor.scale_target(df, 'target')
+        # root_path 없으면 생성하기
+        if not os.path.exists(ROOT_PATH):
+            os.makedirs(ROOT_PATH)
         # 타겟 스케일러 저장
         scaler_path = os.path.join(ROOT_PATH, 'target_scaler.joblib')
         dump(processor.target_scaler, scaler_path)

@@ -1,0 +1,11 @@
+.git
+.vscode
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache
+.env
+venv/
+*.egg-info/
+dist/
+build/
