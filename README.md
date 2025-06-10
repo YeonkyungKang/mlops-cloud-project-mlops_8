@@ -74,6 +74,13 @@
 │   ├── weather_data_202528.csv
 │   ├── preprocessed_weather_data_20250605.csv
 │   ├── target_scaler.joblib
+└── datapipeline
+│   ├── Dockerfile
+│   ├── README.md
+└── airflow
+│   ├── 
+└── mlflow
+│   ├── 
 ├── .dockerignore
 ├── main.py
 ├── requirements.txt
@@ -91,15 +98,13 @@
 ### 🧠 모델링
 - LightGBM을 통한 기온 예측 회귀 분석 모델 구축
 ### 📈 모델 성능 평가
-- MAE, RMSE, R² 기준 성능 측정
-### 💾 DVC 연동
-- 데이터 및 모델 버전 관리
+- RMSE 기준 성능 측정
 ### ⚙️ 워크플로우 자동화
 - Airflow DAG을 통한 주기적 수집/학습/예측 파이프라인
 ### 🚀 API 서비스
 - FastAPI를 통해 특정 관광지의 예측 기온을 제공하는 API
 ### 📊 모니터링
-- MLflow/W&B를 통한 실험 및 성능 추적
+- MLflow를 통한 실험 및 성능 추적
 ### 🐳 컨테이너화
 - Dockerfile을 통한 이식성 높은 실행 환경 제공
 
